@@ -1,0 +1,136 @@
+{
+	"info": {
+		"_postman_id": "63aaef0a-c364-429f-8bb0-50297c0e2d4c",
+		"name": "Marketing Cloud APIs - LondonsCalling",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1056816"
+	},
+	"item": [
+		{
+			"name": "1. oAuth",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var data = JSON.parse(responseBody);",
+							"",
+							"if (data.access_token) {",
+							"  tests[\"access_token received\"] = true; ",
+							"  postman.setEnvironmentVariable(\"o2accessToken\", data.access_token);",
+							"  pm.environment.set(\"o2accessToken\", data.access_token);",
+							"  var d = new Date();",
+							"  d.setTime(d.getTime() + data.expires_in * 1000);",
+							"  postman.setEnvironmentVariable(\"accessExpiryTime\", d.getTime());",
+							"}",
+							"else {",
+							"  tests[\"access_token request failed\"] = false;",
+							"}",
+							"pm.globals.set(\"o2accessToken\", data.access_token);",
+							"pm.globals.set(\"soapBaseURL\", data.soap_instance_url);",
+							"pm.globals.set(\"restBaseURL\", data.rest_instance_url);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "content",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"grant_type\":\"client_credentials\",\n\t\"client_id\": \"{{clientID}}\",\n\t\"client_secret\": \"{{clientSecret}}\",\n\t\"account_id\": \"{{buMID}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{authBaseURL}}/v2/token",
+					"host": [
+						"{{authBaseURL}}"
+					],
+					"path": [
+						"v2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Subscriber to Welcome Journey",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{o2accessToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"ContactKey\": \"11000007\",\n    \"EventDefinitionKey\":\"APIEvent-faf41c67-defe-f207-8959-730a0cb57353\",\n    \"Data\": {\n        \"CustomerId\":\"11000007\",\n        \"FirstName\": \"Bhavi\",\n        \"LastName\": \"Sharma\",\n        \"Email\":\"bhawani.sh.sharma@gmail.com\"        \n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{restBaseURL}}interaction/v1/events",
+					"host": [
+						"{{restBaseURL}}interaction"
+					],
+					"path": [
+						"v1",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Transactional Journey: Send OTP Request",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{o2accessToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"definitionKey\": \"LondonsCalling_OTP_Demo2\",\n  \"recipients\":[\n  {\n   \"contactKey\": \"11000007\",\n    \"to\": \"bhawani.sh.sharma@gmail.com\",\n    \"attributes\": {\n        \"First Name\": \"Bhavi\",\n        \"Code\": \"2364846\"\n    }\n  }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{restBaseURL}}messaging/v1/email/messages",
+					"host": [
+						"{{restBaseURL}}messaging"
+					],
+					"path": [
+						"v1",
+						"email",
+						"messages"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
